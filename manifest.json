@@ -1,0 +1,23 @@
+{
+	"manifest_version": 2,
+	"name": "Backloggery Extras",
+	"description": "",
+	"version": "1.0.0",
+	"minimum_chrome_version": "60.0.3112",
+
+	"icons": {
+		"128": "icon128.png"
+	}, 
+
+	"permissions": [
+		"https://backloggery.com/*"
+	],
+
+	"content_scripts": [
+		{
+			"matches": [ "https://backloggery.com/*" ],
+			"js": [ "polyfill.js", "backloggery-extras.user.js", "jquery-3.6.0.min.js" ],
+			"run_at": "document_start"
+		}
+	]
+}
