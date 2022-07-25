@@ -1,11 +1,11 @@
 {
 	"name": "backloggery-extras",
 	"version": "1.0.0",
-	"description": "",
+	"description": "Adds filters to the memory card page.",
 	"scripts": {
 		"test": "eslint ."
 	},
-	"repository": "https://github.com/duncanlang/Letterboxd-Extras.git",
+	"repository": "https://github.com/duncanlang/Backloggery-Extras.git",
 	"author": "Duncan Lang (https://github.com/duncanlang)",
 	"license": "MIT",
 	"engines": {

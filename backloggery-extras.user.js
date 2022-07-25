@@ -25,12 +25,15 @@
 			position: revert !important;
 			width: auto !important;
 		}
+		.blank-label-extras{
+			cursor: default;
+		}
 	`);
 	/* eslint-enable */
 
 	const backloggery = {
 
-		overview: {
+		memoryCard: {
 
 			lastLocation: window.location.pathname,
 
@@ -44,6 +47,8 @@
 			filterYear: "ALL",
 			filterMonth: "ALL",
 			filterSystem: "ALL",
+
+			minHeight: 0,
 
 			running: false,
 			
@@ -119,13 +124,21 @@
 							const br2 = backloggery.helpers.createElement('br', {class: 'br-extras'},{display: 'none'});
 							b.after(br2);
 						}
-					}
+					}					
+
+					// Create the blank label
+					var parent = document.querySelector("#item0").parentNode;
+					var blankLabel = backloggery.helpers.createElement('label', {class: 'blank-label-extras'},{display: 'none'});
+					blankLabel.innerText = "There are no results for the selected filters.";
+					parent.prepend(blankLabel);
 
 					// Adjust the top margin of the year breakdowns, depending on whether signed in or not
-					var sidebarMargin = "95px";
+					var sidebarMargin = 95;
 					if (document.querySelector('form').innerHTML.includes('Made a mistake? You can remove checked entries from your Memory Card with this button:'))
-						sidebarMargin = "155px";
-					document.querySelector('section.breakdown').style["margin-top"] = sidebarMargin;
+						sidebarMargin = 155;
+					document.querySelector('section.breakdown').style["margin-top"] = sidebarMargin.toString() + "px";
+
+					this.minHeight = document.querySelector('section.breakdown').clientHeight + sidebarMargin + 80;
 
 				}
 				
@@ -167,12 +180,13 @@
 				select.name = id;
 				select.id = id;
 				select.className = "extras-dropdown";
+				//select.multiple = true;
 			 
 				for (const val of values)
 				{
 					var option = document.createElement("option");
 					option.value = val;
-					option.text = val.charAt(0).toUpperCase() + val.slice(1);
+					option.text = val;
 					select.appendChild(option);
 				}
 
@@ -206,7 +220,7 @@
 
 		if (window.location.hostname === 'backloggery.com') {
 			if (window.location.pathname.startsWith('/memorycard.php')) {
-				backloggery.overview.init();
+				backloggery.memoryCard.init();
 			}
 		}
 	});
@@ -220,35 +234,35 @@ function filterMemoryCard(event, backloggery){
 	var value = event.target.value;
 	switch(id){
 		case "status-dropdown":
-			backloggery.overview.filterStatus = value;
+			backloggery.memoryCard.filterStatus = value;
 			break;
 		case "year-dropdown":
-			backloggery.overview.filterYear = value;
+			backloggery.memoryCard.filterYear = value;
 			break;
 		case "month-dropdown":
-			backloggery.overview.filterMonth = value;
+			backloggery.memoryCard.filterMonth = value;
 			break;
 		case "system-dropdown":
-			backloggery.overview.filterSystem = value;
+			backloggery.memoryCard.filterSystem = value;
 			break;
 	}
 
 	// Grab all the filters from the backloggery object
-	var status = backloggery.overview.filterStatus;
-	var year = backloggery.overview.filterYear;
-	var month = backloggery.overview.filterMonth;
-	var system = backloggery.overview.filterSystem;
+	var status = backloggery.memoryCard.filterStatus;
+	var year = backloggery.memoryCard.filterYear;
+	var month = backloggery.memoryCard.filterMonth;
+	var system = backloggery.memoryCard.filterSystem;
 	
 	if (month != 'ALL')
-		month = String(backloggery.overview.months.indexOf(month)).padStart(2,'0');
+		month = String(backloggery.memoryCard.months.indexOf(month)).padStart(2,'0');
 
 	var date = "";
 
 	var count = 0;
 
-	// Loop through the entire Memory Cart
-	for (var i = 0; i < backloggery.overview.memoryCard.length; i++){
-		var memory = backloggery.overview.memoryCard[i];
+	// Loop through the entire Memory Card
+	for (var i = 0; i < backloggery.memoryCard.memoryCard.length; i++){
+		var memory = backloggery.memoryCard.memoryCard[i];
 		var item = document.querySelector('#item' + i);
 		var check = document.querySelector('#check' + i);
 
@@ -294,5 +308,20 @@ function filterMemoryCard(event, backloggery){
 			}
 		}
 	}
+	// Set header title
 	document.querySelector('.header-extras').innerText = "Filters - " + count + " shown";
+
+	// Set minimum height for the section
+	var section = document.querySelector('#content-wide section');
+	section.style['height'] = "auto";
+	if ($(section).height() <= backloggery.memoryCard.minHeight){
+		section.style['height'] = backloggery.memoryCard.minHeight.toString() + "px";
+	}
+
+	// Show or hide the blank label
+	if (count == 0){
+		document.querySelector('.blank-label-extras').style['display'] = "";
+	}else{
+		document.querySelector('.blank-label-extras').style['display'] = "none";
+	}
 }
