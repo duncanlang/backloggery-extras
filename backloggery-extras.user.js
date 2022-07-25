@@ -191,7 +191,7 @@
 				}
 
 				var label = document.createElement("label");
-				label.innerHTML = text;
+				label.innerText = text;
 				label.htmlFor = id;
 				label.style['margin-right'] = "15px";
 			 
