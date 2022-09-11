@@ -15,7 +15,7 @@
 
 	"content_scripts": [
 		{
-			"matches": [ "https://backloggery.com/*" ],
+			"matches": [ "https://backloggery.com/*","https://www.backloggery.com/*" ],
 			"js": [ "polyfill.js", "backloggery-extras.user.js", "jquery-3.6.0.min.js" ],
 			"run_at": "document_start"
 		}

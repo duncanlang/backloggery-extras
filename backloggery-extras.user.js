@@ -218,7 +218,7 @@
 
 	const observer = new MutationObserver(() => {
 
-		if (window.location.hostname === 'backloggery.com') {
+		if (window.location.hostname === 'backloggery.com' || window.location.hostname === 'www.backloggery.com') {
 			if (window.location.pathname.startsWith('/memorycard.php')) {
 				backloggery.memoryCard.init();
 			}
