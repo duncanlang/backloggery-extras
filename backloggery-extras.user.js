@@ -62,7 +62,7 @@
 				this.running = true;
 
 				// First loop through all the items and create the array 
-				if (document.querySelector("#item0") != null && this.memoryCard == null && document.querySelector(".filter-extras") == null){
+				if (document.querySelector("#item0") != null && this.memoryCard == null && document.querySelector(".filter-extras") == null && document.querySelector("section.breakdown") != null){
 					var items = $('[id^=item]');
 
 					// Init
