@@ -15,6 +15,10 @@
 		"128": "icon128.png"
 	}, 
 
+	"permissions": [
+		"storage"
+	],
+
 	"host_permissions": [
 		"https://backloggery.com/*"
 	],

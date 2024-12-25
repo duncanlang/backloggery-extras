@@ -192,6 +192,7 @@
 					// Add the filters to the page if not already added
 					if (document.querySelector('.filter-extras') == null){
 						// Add the filter button
+						//************************************************************
 						const div = backloggery.helpers.createElement('div', {
 							class: 'filter-div-extras'
 						});
@@ -216,8 +217,8 @@
 							ToggleFilters(event, backloggery);
 						});
 
-
 						// Create the Filter Section
+						//************************************************************
 						const container = backloggery.helpers.createElement('div', {
 							class: 'filter-extras'
 						});
@@ -245,6 +246,10 @@
 						$(".extras-dropdown").on('change', function(event){
 							filterMemoryCard(event, backloggery);
 						});
+
+						if (backloggery.storage.getLocal('history-filter-show') === 'hide'){
+							$(".filter-button-extras").click();
+						}
 					}
 					else{
 						// Update the existing filers
@@ -329,8 +334,43 @@
 				}
 				return element;
 			}
+		},
+
+		storage: {
+			dataLocal: {},
+			dataSync: {},
+
+			async init() {
+				this.dataLocal = await browser.storage.local.get().then(function (storedSettings) {
+					return storedSettings;
+				});
+				
+				this.dataSync = await browser.storage.sync.get().then(function (storedSettings) {
+					return storedSettings;
+				});
+			},
+
+			getLocal(key) {
+				return this.dataLocal[key];
+			},
+
+			setLocal(key, value) {
+				this.dataLocal[key] = value;
+				browser.storage.local.set(this.dataLocal);
+			},
+
+			getSync(key) {
+				return this.dataSync[key];
+			},
+
+			setSync(key, value) {
+				this.dataSync[key] = value;
+				browser.storage.local.set(this.dataSync);
+			}
 		}
 	};
+	
+	backloggery.storage.init();
 
 	const observer = new MutationObserver(() => {
 
@@ -431,7 +471,9 @@ function ToggleFilters(event, backloggery){
 
 	if (element.style.display == 'none'){
 		element.style.display = '';
+		backloggery.storage.setLocal('history-filter-show', 'show');
 	}else{
 		element.style.display = 'none';
+		backloggery.storage.setLocal('history-filter-show', 'hide');
 	}
 }
