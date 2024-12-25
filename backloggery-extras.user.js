@@ -5,8 +5,7 @@
 // @version      1.0.0
 // @description  Adds a few additional features to Letterboxd.
 // @author       Duncan Lang
-// @match        https://letterboxd.com/*
-// @connect      https://www.imdb.com
+// @match        https://backloggery.com/*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
 // @run-at       document-start
@@ -21,12 +20,20 @@
 	
 	/* eslint-disable */
 	GM_addStyle(`
-		.filter-extras{
-			position: revert !important;
-			width: auto !important;
-		}
 		.blank-label-extras{
 			cursor: default;
+		}
+		.filter-extras{
+			margin-top: 15px;
+		}
+		.extras-filter-label{
+			display: inline;
+		}
+		.extras-dropdown{
+			padding: 5px;
+		}
+		.header-extras{
+			margin-bottom: 5px !important;
 		}
 	`);
 	/* eslint-enable */
@@ -38,13 +45,12 @@
 			lastLocation: window.location.pathname,
 
 			memoryCard: null,
-			years: new Array(),
-			months: ["ALL","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sept","Oct","Nov","Dec"],
-			systems: new Array(),
+			months: ["ALL","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+			statuses: ["ALL","Added","Added (Unfinished)","Added (Beat)","Added (Completed)","Started","Beat","Completed","Endless","None"],
+			systems: null,
 
 			// Filters
 			filterStatus: "ALL",
-			filterYear: "ALL",
 			filterMonth: "ALL",
 			filterSystem: "ALL",
 
@@ -61,114 +67,144 @@
 
 				this.running = true;
 
-				// First loop through all the items and create the array 
-				if (document.querySelector("#item0") != null && this.memoryCard == null && document.querySelector(".filter-extras") == null && document.querySelector("section.breakdown") != null){
-					var items = $('[id^=item]');
+				const history = document.querySelector('section.history')
+
+				// Check if we need to remove the class name
+				// Because once the loader is gone, we will collect the history again
+				if (document.querySelector('section.history.history-extras div.loader') != null){
+					history.className = history.className.replace(' history-extras', '');
+				}
+
+				// Collect all of the history entries
+				if (document.querySelector('.history-extras') == null && document.querySelector('section.history') != null && document.querySelector('section.history div.loader') == null){
 
 					// Init
 					this.memoryCard = new Array();
-					this.years.push("ALL");
+					this.systems = new Array();
+
+					// Keep the date outside of the loop
 					var date = "";
+					var dateObject = null;
+					var dateText = "";
+					var year = "";
+					var month = "";
+
+					var headerAtt = "";
 
 					// Loop
-					for (var i = 0; i < items.length; i++){
-						var item = items[i];
-						var text = item.querySelectorAll('b');
+					var list = history.querySelector('div.list');
+					var entries = list.childNodes;
+					for (var i = 0; i < entries.length; i++){
+						var entry = entries[i];
 
-						// Grab the status/system and the date if it exists
-						if (text[0].querySelector('u') != null){
-							date = text[0].querySelector('u').innerText;
-							var status = text[1].innerText;
-						}else{
-							var status = text[0].innerText;
+						// Date
+						var header = entry.querySelector('h2');
+						if (header != null){
+							date = header.getAttribute('title');
+							dateText = header.innerText;
+							dateObject = new Date(date)
+							year = dateObject.getFullYear();
+							month = dateObject.getMonth();
+
+							// I don't know if this attribute will change, so get it here
+							for (const attr of header.attributes) {
+								if (attr.name.startsWith('data-v-')) {
+									headerAtt = attr.name
+								  	break; // Exit the loop once found
+								}
+							}
 						}
-						status = status.replace(':','');
-						
-						// Make year 4 digit and add to array
-						var year = "20" + date.substring(6,8);
-						if (!this.years.includes(year))
-							this.years.push(year);
+						else{
+							// Create hidden Date Header
+							const newDate = backloggery.helpers.createElement('h2', {
+								class: 'extras-date-header',
+								[headerAtt]: '',
+								title: date
+							},{
+								display: 'none'
+							});
+							newDate.innerText = dateText;
 
-						// Use Regex to get the system from the text
-						// Specifically grabs the last group of text in parentheses
-						var system = item.innerText.match(/(\()([\w\d]+)(\))(?!.*\1)/);
-						system = system[2];
+							entry.prepend(newDate);
+						}
+						
+						// Status
+						var status = entry.querySelector('div').querySelector('div').innerText;
+
+						// System
+						var system =entry.querySelector('div').querySelectorAll('div')[2].querySelector('span').innerText;
+						system = system.replace('(','');
+						system = system.replace(')','');
 
 						if (!this.systems.includes(system))
 							this.systems.push(system);
 
-						// Create the object for the memorycard array
-						var newItem = {
-							id: i,
+						// Create object
+						var historyItem = {
+							entry: entry,
 							fullDate: date,
 							year: year,
-							month: date.substring(0,2),
-							day: date.substring(3,5),
-							status: status, // New, New (Null), New (Beat), New (Complete), Started, Beat, Complete, Mastered
+							month: month,
+							status: status,
 							system: system
 						};
-						this.memoryCard.push(newItem);
 
+						// Add to the array
+						this.memoryCard.push(historyItem);
+					}
 
-						// For the entries with no date, create a hidden date - to used when some filters are active
-						if (text[0].querySelector('u') == null){
-							const br1 = backloggery.helpers.createElement('br', {class: 'br-extras'},{display: 'none'});
-							item.querySelector('img').before(br1);
-							
-							const b = backloggery.helpers.createElement('b', {class: 'br-extras'},{display: 'none'});
-							const u = backloggery.helpers.createElement('u', {class: 'br-extras'});
-							u.innerText = date;
-							b.append(u);
-							br1.after(b);
-
-							const br2 = backloggery.helpers.createElement('br', {class: 'br-extras'},{display: 'none'});
-							b.after(br2);
-						}
-					}					
-
-					// Create the blank label
-					var parent = document.querySelector("#item0").parentNode;
-					var blankLabel = backloggery.helpers.createElement('label', {class: 'blank-label-extras'},{display: 'none'});
+					// Create Blank entry
+					const blankLabel = backloggery.helpers.createElement('p', {
+						class: 'blank-label-extras'
+					},
+					{
+						display: 'none'
+					});
 					blankLabel.innerText = "There are no results for the selected filters.";
-					parent.prepend(blankLabel);
+					list.prepend(blankLabel);
 
-					// Adjust the top margin of the year breakdowns, depending on whether signed in or not
-					var sidebarMargin = 95;
-					if (document.querySelector('form').innerHTML.includes('Made a mistake? You can remove checked entries from your Memory Card with this button:'))
-						sidebarMargin = 155;
-					document.querySelector('section.breakdown').style["margin-top"] = sidebarMargin.toString() + "px";
+					// Set the class on the history element so we know this has been collected already
+					history.className += ' history-extras';
 
-					this.minHeight = document.querySelector('section.breakdown').clientHeight + sidebarMargin + 80;
-
-				}
-				
-				// Now that everything has been grabbed, lets create the UI
-				if (this.memoryCard != null && document.querySelector(".filter-extras") == null){
-					// Sort systems array
+					// Sort the systems array
 					this.systems.sort((a, b) => a.localeCompare(b));
 					this.systems.unshift("ALL");
 
-					// Create the Section
-					const container = backloggery.helpers.createElement('section', {
-						class: 'breakdown filter-extras'
-					});
-					const header = backloggery.helpers.createElement('h1', {
-						class: 'spoot header-extras'
-					});
-					header.innerText = "Filters - " + this.memoryCard.length + " shown";
-					container.append(header);
-					document.querySelector("#item0").parentNode.before(container);
+					// Add the filters to the page if not already added
+					if (document.querySelector('.filter-extras') == null){
+						// Create the Section
+						const container = backloggery.helpers.createElement('div', {
+							class: 'filter-extras'
+						});
+						const header = backloggery.helpers.createElement('h1', {
+							class: 'header-extras'
+						});
+						header.innerText = "Filters - " + this.memoryCard.length + " shown";
+						container.append(header);
 
-					// Create the dropdown UIs
-					this.CreateDropDown(container, "status-dropdown", "Status: ", ["ALL","New","New (Null)","New (Beat)","New (Complete)","Started","Beat","Completed","Mastered"]);
-					this.CreateDropDown(container, "year-dropdown", "Year: ", this.years);
-					this.CreateDropDown(container, "month-dropdown", "Month: ", this.months);
-					this.CreateDropDown(container, "system-dropdown", "System: ", this.systems);
+						// Create the dropdown UIs
+						this.CreateDropDown(container, "status-dropdown", "Status: ", this.statuses);
+						this.CreateDropDown(container, "month-dropdown", "Month: ", this.months);
+						this.CreateDropDown(container, "system-dropdown", "System: ", this.systems);
 
-					// Add on change event for the dropdowns to trigger the filter function
-					$(".extras-dropdown").on('change', function(event){
-						filterMemoryCard(event, backloggery);
-					});
+						// Add to the page
+						document.querySelector(".history-extras p").append(container);
+
+						// Add on change event for the dropdowns to trigger the filter function
+						$(".extras-dropdown").on('change', function(event){
+							filterMemoryCard(event, backloggery);
+						});
+					}
+					else{
+						// Update the existing filers
+						this.SelectDownDown('status-dropdown', 'ALL');
+						this.SelectDownDown('month-dropdown', 'ALL');
+						this.SelectDownDown('system-dropdown', 'ALL');
+
+						this.UpdateDropDown('system-dropdown', this.systems);
+
+						document.querySelector('.header-extras').innerText = "Filters - " + this.memoryCard.length + " shown";
+					}
 				}
 
 				// Stop
@@ -180,7 +216,6 @@
 				select.name = id;
 				select.id = id;
 				select.className = "extras-dropdown";
-				//select.multiple = true;
 			 
 				for (const val of values)
 				{
@@ -194,9 +229,35 @@
 				label.innerText = text;
 				label.htmlFor = id;
 				label.style['margin-right'] = "15px";
+				label.className = 'extras-filter-label';
 			 
 				parent.appendChild(label).appendChild(select);
 			},
+
+			UpdateDropDown(id, values){
+				let element = document.getElementById(id);
+
+				// Remove current values (except the first, "ALL")
+				while (element.children.length > 1) {
+					element.removeChild(element.lastChild);
+				}
+				
+				for (const val of values)
+				{
+					if (val != 'ALL'){
+						var option = document.createElement("option");
+						option.value = val;
+						option.text = val;
+						element.appendChild(option);
+					}
+				}
+
+			},
+
+			SelectDownDown(id, value){
+				let element = document.getElementById(id);
+				element.value = value;
+			}
 
 		},
 
@@ -219,7 +280,7 @@
 	const observer = new MutationObserver(() => {
 
 		if (window.location.hostname === 'backloggery.com' || window.location.hostname === 'www.backloggery.com') {
-			if (window.location.pathname.startsWith('/memorycard.php')) {
+			if (window.location.pathname.endsWith('/history')) {
 				backloggery.memoryCard.init();
 			}
 		}
@@ -236,9 +297,6 @@ function filterMemoryCard(event, backloggery){
 		case "status-dropdown":
 			backloggery.memoryCard.filterStatus = value;
 			break;
-		case "year-dropdown":
-			backloggery.memoryCard.filterYear = value;
-			break;
 		case "month-dropdown":
 			backloggery.memoryCard.filterMonth = value;
 			break;
@@ -249,7 +307,6 @@ function filterMemoryCard(event, backloggery){
 
 	// Grab all the filters from the backloggery object
 	var status = backloggery.memoryCard.filterStatus;
-	var year = backloggery.memoryCard.filterYear;
 	var month = backloggery.memoryCard.filterMonth;
 	var system = backloggery.memoryCard.filterSystem;
 	
@@ -263,24 +320,20 @@ function filterMemoryCard(event, backloggery){
 	// Loop through the entire Memory Card
 	for (var i = 0; i < backloggery.memoryCard.memoryCard.length; i++){
 		var memory = backloggery.memoryCard.memoryCard[i];
-		var item = document.querySelector('#item' + i);
-		var check = document.querySelector('#check' + i);
+		var item = memory.entry;
 
 		var showDate = false;
 
 		// Check if item matches filter
 		if ((memory.status == status || status == "ALL") &&
-			(memory.year == year || year == "ALL") &&
 			(memory.month == month || month == "ALL") &&
 			(memory.system == system || system == "ALL")){
+
 			// Matches filter, display the item
-			if (check != null)
-				check.style.display = "inline-block";
-			item.style.display = "inline-block";
-			item.nextSibling.style.display = "inline-block";
+			item.style.display = "";
 			
 			// Determine if the custom date needs to be displayed
-			if (item.querySelector('.br-extras') != null && (memory.fullDate != date || date == "")){
+			if (item.querySelector('.extras-date-header') != null && (memory.fullDate != date || date == "")){
 				showDate = true;
 			}
 
@@ -288,17 +341,14 @@ function filterMemoryCard(event, backloggery){
 			count++;
 		}else{
 			// Does not match the filter, hide the item
-			if (check != null)
-				check.style.display = "none";
 			item.style.display = "none";
-			item.nextSibling.style.display = "none";
 
 			date = "";
 		}
 
 		// Change the display of the custom date here		
-		if (item.querySelector('.br-extras') != null){
-			var extras = item.querySelectorAll('.br-extras');
+		if (item.querySelector('.extras-date-header') != null){
+			var extras = item.querySelectorAll('.extras-date-header');
 			for (const extra of extras){
 				if (showDate){
 					extra.style.display = "";
@@ -310,13 +360,6 @@ function filterMemoryCard(event, backloggery){
 	}
 	// Set header title
 	document.querySelector('.header-extras').innerText = "Filters - " + count + " shown";
-
-	// Set minimum height for the section
-	var section = document.querySelector('#content-wide section');
-	section.style['height'] = "auto";
-	if ($(section).height() <= backloggery.memoryCard.minHeight){
-		section.style['height'] = backloggery.memoryCard.minHeight.toString() + "px";
-	}
 
 	// Show or hide the blank label
 	if (count == 0){
