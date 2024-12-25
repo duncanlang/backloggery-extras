@@ -35,6 +35,25 @@
 		.header-extras{
 			margin-bottom: 5px !important;
 		}
+		.filter-button-extras {
+			background: transparent;
+			border: none;
+			-webkit-box-flex: 1;
+			-ms-flex: 1;
+			flex: 1;
+			height: 30px;
+			margin: 0;
+			max-width: 40px;
+			padding-bottom: 2px;
+		}
+		.filter-button-extras svg {
+			pointer-events: none;
+		}
+		.filter-div-extras {
+			display: flex;
+			width: 100%;
+			height: 0px;
+		}
 	`);
 	/* eslint-enable */
 
@@ -172,20 +191,52 @@
 
 					// Add the filters to the page if not already added
 					if (document.querySelector('.filter-extras') == null){
-						// Create the Section
+						// Add the filter button
+						const div = backloggery.helpers.createElement('div', {
+							class: 'filter-div-extras'
+						});
+						const spaceDiv = backloggery.helpers.createElement('div', {
+							style: 'flex-grow: 2'
+						});
+						div.append(spaceDiv);
+
+						const button = backloggery.helpers.createElement('button', {
+							class: 'option filter-button-extras',
+							title: 'Filter',
+							target: 'filter-extras'
+						});
+						button.innerHTML = '<svg id="filter" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="20px" height="20px"><path d="M0 0h24v24H0V0z" fill="none"></path><path d="M0 0h24m0 24H0" fill="none"></path><path d="M4.25 5.66c.1.13 5.74 7.33 5.74 7.33V19c0 .55.45 1 1.01 1h2.01c.55 0 1.01-.45 1.01-1v-6.02s5.49-7.02 5.75-7.34C20.03 5.32 20 5 20 5c0-.55-.45-1-1.01-1H5.01C4.4 4 4 4.48 4 5c0 .2.06.44.25.66z"></path></svg>';
+						div.append(button);
+
+						// Add to the page
+						document.querySelector(".history-extras p").before(div);
+						
+						// Add on change event for the dropdowns to trigger the filter function
+						$(".filter-button-extras").on('click', function(event){
+							ToggleFilters(event, backloggery);
+						});
+
+
+						// Create the Filter Section
 						const container = backloggery.helpers.createElement('div', {
 							class: 'filter-extras'
 						});
 						const header = backloggery.helpers.createElement('h1', {
 							class: 'header-extras'
 						});
-						header.innerText = "Filters - " + this.memoryCard.length + " shown";
+						header.innerText = "Filters";
 						container.append(header);
 
 						// Create the dropdown UIs
 						this.CreateDropDown(container, "status-dropdown", "Status: ", this.statuses);
 						this.CreateDropDown(container, "month-dropdown", "Month: ", this.months);
 						this.CreateDropDown(container, "system-dropdown", "System: ", this.systems);
+
+						// Add text
+						const subHeader = backloggery.helpers.createElement('p', {
+							class: 'subheader-extras'
+						});
+						container.append(subHeader);
 
 						// Add to the page
 						document.querySelector(".history-extras p").append(container);
@@ -202,9 +253,8 @@
 						this.SelectDownDown('system-dropdown', 'ALL');
 
 						this.UpdateDropDown('system-dropdown', this.systems);
-
-						document.querySelector('.header-extras').innerText = "Filters - " + this.memoryCard.length + " shown";
 					}
+					this.UpdateSubHeader(this.memoryCard.length);
 				}
 
 				// Stop
@@ -257,6 +307,11 @@
 			SelectDownDown(id, value){
 				let element = document.getElementById(id);
 				element.value = value;
+			},
+
+			UpdateSubHeader(count){
+				const subHeader = document.querySelector('.subheader-extras');
+				subHeader.innerText = 'There are ' + count + " entries matching your filters.";
 			}
 
 		},
@@ -359,12 +414,24 @@ function filterMemoryCard(event, backloggery){
 		}
 	}
 	// Set header title
-	document.querySelector('.header-extras').innerText = "Filters - " + count + " shown";
+	backloggery.memoryCard.UpdateSubHeader(count);
 
 	// Show or hide the blank label
 	if (count == 0){
 		document.querySelector('.blank-label-extras').style['display'] = "";
 	}else{
 		document.querySelector('.blank-label-extras').style['display'] = "none";
+	}
+}
+
+function ToggleFilters(event, backloggery){
+	var target = event.target.getAttribute('target');
+
+	var element = document.querySelector('.' + target);
+
+	if (element.style.display == 'none'){
+		element.style.display = '';
+	}else{
+		element.style.display = 'none';
 	}
 }
