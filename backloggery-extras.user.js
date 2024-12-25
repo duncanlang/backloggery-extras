@@ -103,8 +103,8 @@
 							date = header.getAttribute('title');
 							dateText = header.innerText;
 							dateObject = new Date(date)
-							year = dateObject.getFullYear();
-							month = dateObject.getMonth();
+							year = dateObject.getUTCFullYear();
+							month = dateObject.getUTCMonth() + 1;
 
 							// I don't know if this attribute will change, so get it here
 							for (const attr of header.attributes) {
