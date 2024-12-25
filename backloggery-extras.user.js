@@ -65,7 +65,7 @@
 
 			memoryCard: null,
 			months: ["ALL","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
-			statuses: ["ALL","Added","Added (Unfinished)","Added (Beat)","Added (Completed)","Started","Beat","Completed","Endless","None"],
+			statuses: null,
 			systems: null,
 
 			// Filters
@@ -83,10 +83,19 @@
 
 			async init() {
 				if (this.running) return;
+				if (backloggery.storage.initialized == false) return;
 
 				this.running = true;
 
 				const history = document.querySelector('section.history')
+
+				if (this.statuses == null){
+					if (backloggery.storage.getSync('added-combined') === "added" || backloggery.storage.getSync('added-combined') === "other"){
+						this.statuses = ["ALL","Added","Started","Beat","Completed","Endless","None"];
+					}else{
+						this.statuses = ["ALL","Added","Added (Unfinished)","Added (Beat)","Added (Completed)","Started","Beat","Completed","Endless","None"];
+					}
+				}
 
 				// Check if we need to remove the class name
 				// Because once the loader is gone, we will collect the history again
@@ -149,6 +158,19 @@
 						
 						// Status
 						var status = entry.querySelector('div').querySelector('div').innerText;
+						if (backloggery.storage.getSync('added-combined') === "added" && status.includes('Added')){
+							status = "Added";
+						} else if (backloggery.storage.getSync('added-combined') === "other" && status.includes('Added')){
+							if (status.includes('Unfinished')){
+								status = "Added";
+							} else if (status.includes('Started')){
+								status = "Started";
+							} else if (status.includes('Beat')){
+								status = "Beat";
+							} else if (status.includes('Completed')){
+								status = "Completed";
+							}
+						}
 
 						// System
 						var system =entry.querySelector('div').querySelectorAll('div')[2].querySelector('span').innerText;
@@ -339,6 +361,7 @@
 		storage: {
 			dataLocal: {},
 			dataSync: {},
+			initialized: false,
 
 			async init() {
 				this.dataLocal = await browser.storage.local.get().then(function (storedSettings) {
@@ -348,6 +371,8 @@
 				this.dataSync = await browser.storage.sync.get().then(function (storedSettings) {
 					return storedSettings;
 				});
+
+				this.initialized = true;
 			},
 
 			getLocal(key) {

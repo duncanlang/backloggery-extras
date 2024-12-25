@@ -6,14 +6,31 @@
 	"minimum_chrome_version": "60.0.3112",
 	
 	"browser_specific_settings": {
+		"gecko": {
+			"id": "{fa1fe778-e376-4b78-be02-c58e0512e4b0}"
+		},
 		"gecko_android": {
 		  "strict_min_version": "113.0"
 		}
-	},	
+	},
+	
+	"action": {
+		"default_title": "Letterboxd Extras Settings",
+		"default_popup": "options.html",
+		"default_icon": {
+			"16": "icon16.png",
+			"32": "icon32.png",
+			"128": "icon128.png"
+		}
+	},
 
 	"icons": {
 		"128": "icon128.png"
 	}, 
+
+	"options_ui": {
+		"page": "options.html"
+	},	
 
 	"permissions": [
 		"storage"
