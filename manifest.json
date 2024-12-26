@@ -2,7 +2,7 @@
 	"manifest_version": 3,
 	"name": "Backloggery Extras",
 	"description": "Adds filters to the memory card page.",
-	"version": "1.0.1",
+	"version": "2.0.0",
 	"minimum_chrome_version": "60.0.3112",
 	
 	"browser_specific_settings": {
