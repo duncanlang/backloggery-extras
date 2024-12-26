@@ -18,15 +18,15 @@
 		"default_title": "Letterboxd Extras Settings",
 		"default_popup": "options.html",
 		"default_icon": {
-			"16": "Images/iconaction16.png",
-			"32": "Images/iconaction32.png",
-			"64": "Images/iconaction64.png",
-			"128": "Images/iconaction128.png"
+			"16": "images/iconaction16.png",
+			"32": "images/iconaction32.png",
+			"64": "images/iconaction64.png",
+			"128": "images/iconaction128.png"
 		}
 	},
 
 	"icons": {
-		"128": "Images/iconlogo128.png"
+		"128": "images/iconlogo128.png"
 	}, 
 
 	"options_ui": {
