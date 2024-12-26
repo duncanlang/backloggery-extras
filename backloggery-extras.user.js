@@ -52,7 +52,6 @@
 		.filter-div-extras {
 			display: flex;
 			width: 100%;
-			height: 0px;
 		}
 	`);
 	/* eslint-enable */
@@ -231,6 +230,11 @@
 						button.innerHTML = '<svg id="filter" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="20px" height="20px"><path d="M0 0h24v24H0V0z" fill="none"></path><path d="M0 0h24m0 24H0" fill="none"></path><path d="M4.25 5.66c.1.13 5.74 7.33 5.74 7.33V19c0 .55.45 1 1.01 1h2.01c.55 0 1.01-.45 1.01-1v-6.02s5.49-7.02 5.75-7.34C20.03 5.32 20 5 20 5c0-.55-.45-1-1.01-1H5.01C4.4 4 4 4.48 4 5c0 .2.06.44.25.66z"></path></svg>';
 						div.append(button);
 
+						if (document.querySelector(".history-extras p").scrollWidth < 510)
+							div.style['height'] = '30px'
+						else
+							div.style['height'] = '0px'
+
 						// Add to the page
 						document.querySelector(".history-extras p").before(div);
 						
@@ -243,6 +247,8 @@
 						//************************************************************
 						const container = backloggery.helpers.createElement('div', {
 							class: 'filter-extras'
+						},{
+							display: 'none'
 						});
 						const header = backloggery.helpers.createElement('h1', {
 							class: 'header-extras'
@@ -269,7 +275,12 @@
 							filterMemoryCard(event, backloggery);
 						});
 
-						if (backloggery.storage.getLocal('history-filter-show') === 'hide'){
+						// Show the filters based on the settings
+						if (backloggery.storage.getSync('show-filters') === 'show'){
+							$(".filter-button-extras").click();
+						} else if (backloggery.storage.getSync('show-filters') === 'hide'){
+							// already hidden by default, do nothing
+						} else if (backloggery.storage.getLocal('history-filter-show') === 'show'){
 							$(".filter-button-extras").click();
 						}
 					}
