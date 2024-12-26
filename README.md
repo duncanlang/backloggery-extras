@@ -1,6 +1,6 @@
 <h1>
 <sub>
-<img src="./images/iconlogo128.png" height="38" width="38">
+<img src="./Images/iconlogo128.png" height="38" width="38">
 </sub>
 Backloggery Extras
 </h1>
@@ -18,10 +18,10 @@ A FireFox browser add-on for Desktop and Android which add filter options to the
 
 ## Screenshots
 Filters on the history tab, currently set with status set to "Added"
-<img src="./screenshots/1.png" alt="Status filter set to Added">
+<img src="./Screenshots/1.png" alt="Status filter set to Added">
 
 Status filter set to "Complete"
-<img src="./screenshots/2.png" alt="Status filter set to Completed">
+<img src="./Screenshots/2.png" alt="Status filter set to Completed">
 
 ## Issues or Suggestions
 Any issues or suggestions, please [create an issue on GitHub](https://github.com/duncanlang/backloggery-extras/issues).
